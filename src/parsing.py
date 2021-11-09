@@ -1,6 +1,7 @@
 import typing
 
 import bs4
+import nltk
 
 NON_RELEVANT_HTML_TAGS = ["script", "style", "link", "noscript"]
 
@@ -33,3 +34,22 @@ def extract_text_from_html(page: str) -> str:
     text = "\n".join(chunk for chunk in chunks if chunk)
 
     return text
+
+
+def tokenize_and_tag_raw_text(text: str) -> list[tuple[str, str]]:
+    """
+    Returns a list of tuples in the form:
+    - [0] token
+    - [1] POS tag
+
+    Parameters
+    ----------
+    text: `str`
+    Raw text. 
+
+    Returns
+    -------
+    `list[tuple[str, str]]` POS tagged tokens
+    """
+    tokens = nltk.word_tokenize(text)
+    return nltk.pos_tag(tokens)  # type: ignore
