@@ -7,6 +7,7 @@ name = "pypi"
 yt = "*"
 trident = "*"
 elasticsearch = "*"
+beautifulsoup4 = "*"
 
 [dev-packages]
 autopep8 = "*"
