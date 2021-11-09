@@ -8,6 +8,7 @@ yt = "*"
 trident = "*"
 elasticsearch = "*"
 beautifulsoup4 = "*"
+nltk = "*"
 
 [dev-packages]
 autopep8 = "*"
