@@ -6,6 +6,11 @@ import nltk
 NON_RELEVANT_HTML_TAGS = ["script", "style", "link", "noscript"]
 
 
+def init_parsing():
+    nltk.download('punkt')
+    nltk.download('averaged_perceptron_tagger')
+
+
 def extract_text_from_html(page: str) -> str:
     """
     Extracts text from HTML page, removing scripts and other non-relevant
@@ -26,7 +31,7 @@ def extract_text_from_html(page: str) -> str:
 
     # NOTE(andrea): this casting is just to make mypy happy (bs4 has no typing)
     # we just use the body of the page here but we may want to also include the head
-    text = typing.cast(str, soup.body.get_text())
+    text = typing.cast(str, soup.get_text())
 
     # cleaning spaces and newlines
     lines = (line.strip() for line in text.splitlines())
