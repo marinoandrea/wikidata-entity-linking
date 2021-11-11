@@ -1,13 +1,9 @@
-import datetime
-import logging
-import re
 import typing
 
 import bs4
 import nltk
-from dateutil import parser as date_parser
 
-from src.interfaces import NamedEntity, WARCRecordMetadata
+from src.interfaces import NamedEntity
 
 NON_RELEVANT_HTML_TAGS = ["script", "style", "link", "noscript"]
 
@@ -42,6 +38,7 @@ def extract_text_from_html(page: str) -> str:
     text = typing.cast(str, soup.get_text())
 
     # cleaning spaces and newlines
+    # TODO(andrea): optimize this string manipulation
     lines = (line.strip() for line in text.splitlines())
     chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
     text = "\n".join(chunk for chunk in chunks if chunk)
