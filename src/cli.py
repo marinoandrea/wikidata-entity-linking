@@ -1,5 +1,7 @@
 import argparse
 
+from nltk.util import pr
+
 PROGRAM_DESCRIPTION = '''    
 Welcome to '[WDPS 2021] - Assignment 1' CLI.
 
@@ -33,4 +35,5 @@ def parse_cl_args() -> list[str]:
         type=str,
         help='Output TSV file path. The file will be created if it does not exist, if it exists, it will be overwritten.')
     args = parser.parse_args()
-    return args.archives  # type: ignore
+    print(args)
+    return args.archives, args.output  # type: ignore
