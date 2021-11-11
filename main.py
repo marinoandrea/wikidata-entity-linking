@@ -4,8 +4,6 @@ import time
 from functools import partial
 from typing import Dict
 
-from nltk import chunk
-
 from src.cli import parse_cl_args
 from src.interfaces import WARCJobInformation, WARCRecordMetadata
 from src.parsing import (extract_entities, extract_text_from_html,
