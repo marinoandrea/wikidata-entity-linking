@@ -27,5 +27,10 @@ def parse_cl_args() -> list[str]:
         nargs='+',
         type=str,
         help='One or multiple paths for the WARC archives you want to process.')
+    parser.add_argument(
+        '-o', '--output',
+        required=True,
+        type=str,
+        help='Output TSV file path. The file will be created if it does not exist, if it exists, it will be overwritten.')
     args = parser.parse_args()
     return args.archives  # type: ignore
