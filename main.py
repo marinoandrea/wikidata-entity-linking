@@ -14,6 +14,21 @@ DAEMON_SLEEP_TIME_S: float = 0.250
 
 
 def process_record(output_dict: Dict[WARCRecordMetadata, WARCJobInformation], record: str):
+    """
+    The main data pipeline. Runs for every record in a WARC archive.
+    This function is meant to be the target of a sub-process and takes
+    a dict proxy provided by `multiprocessing.Manager` in order to 
+    synchronize operations with the flush daemon.
+
+    Parameters
+    ----------
+    - output_dict `Dict[WARCRecordMetadata, WARCJobInformation]`
+    Instance of `multiprocessing.Manager.dict()`. It is populated
+    with job-relevant information.
+
+    - record `str`
+    The WARC record, including both metadata and HTML.
+    """
     if record is None:
         return
 
@@ -44,12 +59,39 @@ def process_record(output_dict: Dict[WARCRecordMetadata, WARCJobInformation], re
 
 
 def process_archive(output_dict: Dict[WARCRecordMetadata, WARCJobInformation], warc_path: str):
+    """
+    A utilty function to map WARC archives into separate processes
+    which will initialize a `multiprocessing.Pool` that maps every record
+    to the main processing function (see `process_record`).
+
+    Parameters
+    ----------
+    - output_dict `Dict[WARCRecordMetadata, WARCJobInformation]`
+    Instance of `multiprocessing.Manager.dict()`. It is populated
+    with job-relevant information.
+
+    - warc_path `str`
+    The WARC archive path.
+    """
     pool = mp.Pool(processes=mp.cpu_count())
     pool.map(partial(process_record, output_dict),
              stream_records_from_warc(warc_path))
 
 
 def flush_daemon(output_dict: Dict[WARCRecordMetadata, WARCJobInformation], output_path: str):
+    """
+    I/O specialized daemon which flushes linked entities to file when
+    the child processes flag a record as being processed (see `WARCJobInformation.is_done`). 
+
+    Parameters
+    ----------
+    - output_dict `Dict[WARCRecordMetadata, WARCJobInformation]`
+    Instance of `multiprocessing.Manager.dict()`. It is populated
+    with job-relevant information.
+
+    - output_path `str`
+    The output TSV file path.
+    """
     while True:
         time.sleep(DAEMON_SLEEP_TIME_S)
         with open(output_path, 'w+') as f:
