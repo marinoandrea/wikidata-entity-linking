@@ -35,5 +35,4 @@ def parse_cl_args() -> list[str]:
         type=str,
         help='Output TSV file path. The file will be created if it does not exist, if it exists, it will be overwritten.')
     args = parser.parse_args()
-    print(args)
     return args.archives, args.output  # type: ignore

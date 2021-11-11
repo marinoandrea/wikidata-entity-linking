@@ -100,8 +100,6 @@ def extract_metadata_from_warc(warc_record: str) -> WARCRecordMetadata:
             break
 
     if trec_id is None:
-        logging.log(
-            logging.ERROR, f"warc record does not have a trec ID")
         raise ValueError()
 
     return WARCRecordMetadata(

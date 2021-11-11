@@ -44,3 +44,4 @@ class WARCJobInformation(TypedDict):
     """
     mappings: list[EntityMapping]
     is_done: bool
+    is_flushed: bool
