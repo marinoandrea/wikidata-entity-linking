@@ -7,7 +7,7 @@ import bs4
 import nltk
 from dateutil import parser as date_parser
 
-from src.interfaces import WARCRecordMetadata
+from src.interfaces import NamedEntity, WARCRecordMetadata
 
 NON_RELEVANT_HTML_TAGS = ["script", "style", "link", "noscript"]
 
@@ -15,6 +15,8 @@ NON_RELEVANT_HTML_TAGS = ["script", "style", "link", "noscript"]
 def init_parsing():
     nltk.download('punkt')
     nltk.download('averaged_perceptron_tagger')
+    nltk.download('maxent_ne_chunker')
+    nltk.download('words')
 
 
 def extract_text_from_html(page: str) -> str:
@@ -64,3 +66,30 @@ def tokenize_and_tag_raw_text(text: str) -> list[tuple[str, str]]:
     """
     tokens = nltk.word_tokenize(text)
     return nltk.pos_tag(tokens)  # type: ignore
+
+
+def extract_entities(tokens: list[tuple[str, str]]):
+    """
+    Returns the named entities found in the provided list of tokens.
+
+    Parameters
+    ----------
+    tokens: `list[tuple[str, str]]`
+    List of pos tagged extracted tokens. 
+
+    Returns
+    -------
+    `list[tuple[str, str]]` POS tagged tokens
+    """
+    chunks = nltk.ne_chunk(tokens)
+    named_entities: list[NamedEntity] = []
+    for chunk in chunks:
+        # here we are removing non-labeled entities and other
+        # words from the pipeline
+        label = getattr(chunk, 'label', lambda: 'UNKNOWN')()
+        if label == 'UNKNOWN':
+            continue
+        # we obtain the entity original string from the tokens
+        name = ' '.join(token[0] for token in chunk)
+        named_entities.append(NamedEntity(name=name, label=label))
+    return named_entities

@@ -5,9 +5,15 @@ from typing import Optional
 from typing_extensions import TypedDict
 
 
-@dataclass
+@dataclass(eq=True, frozen=True, unsafe_hash=False)
+class NamedEntity:
+    name: str
+    label: str
+
+
+@dataclass(eq=True, frozen=True, unsafe_hash=False)
 class EntityMapping:
-    named_entity: str
+    named_entity: NamedEntity
     entity_url: str
 
 

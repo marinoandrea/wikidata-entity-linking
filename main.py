@@ -4,10 +4,12 @@ import time
 from functools import partial
 from typing import Dict
 
+from nltk import chunk
+
 from src.cli import parse_cl_args
 from src.interfaces import WARCJobInformation, WARCRecordMetadata
-from src.parsing import (extract_text_from_html, init_parsing,
-                         tokenize_and_tag_raw_text)
+from src.parsing import (extract_entities, extract_text_from_html,
+                         init_parsing, tokenize_and_tag_raw_text)
 from src.warc import extract_metadata_from_warc, stream_records_from_warc
 
 DAEMON_SLEEP_TIME_S: float = 0.250
@@ -47,10 +49,10 @@ def process_record(output_dict: Dict[WARCRecordMetadata, WARCJobInformation], re
 
     text = extract_text_from_html(record)
     tagged_tokens = tokenize_and_tag_raw_text(text)
+    named_entities = extract_entities(tagged_tokens)
 
-    # TODO: do something with our tagged tokens!
+    # TODO: do something with our named entities!
     # ....
-    # TODO: add
 
     # workaround for DictProxy update not working on nested fields
     _temp_job_info = output_dict[warc_metadata]
@@ -100,7 +102,7 @@ def flush_daemon(output_dict: Dict[WARCRecordMetadata, WARCJobInformation], outp
                     continue
                 for mapping in output_dict[warc]['mappings']:
                     f.write(
-                        f'{warc.trec_id}\t{mapping.named_entity}\t{mapping.entity_url}\n')
+                        f'{warc.trec_id}\t{mapping.named_entity.name}\t{mapping.entity_url}\n')
                 # workaround for DictProxy update not working on nested fields
                 _temp_job_info = output_dict[warc]
                 _temp_job_info['is_flushed'] = True
