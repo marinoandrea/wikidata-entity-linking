@@ -79,7 +79,7 @@ def extract_entities(tokens: list[tuple[str, str]]):
 
     Returns
     -------
-    `list[tuple[str, str]]` POS tagged tokens
+    `list[NamedEntity]` List of labeled named entities.
     """
     chunks = nltk.ne_chunk(tokens)
     named_entities: list[NamedEntity] = []
