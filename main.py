@@ -5,9 +5,9 @@ from typing import Dict
 
 from src.cli import parse_cl_args
 from src.interfaces import WARCJobInformation, WARCRecordMetadata
-from src.parsing import (extract_metadata_from_warc, extract_text_from_html,
-                         init_parsing, tokenize_and_tag_raw_text)
-from src.warc import stream_records_from_warc
+from src.parsing import (extract_text_from_html, init_parsing,
+                         tokenize_and_tag_raw_text)
+from src.warc import extract_metadata_from_warc, stream_records_from_warc
 
 FLUSH_THRESHOLD: int = 500
 DAEMON_SLEEP_TIME_S: float = 0.250
