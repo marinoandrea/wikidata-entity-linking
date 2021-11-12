@@ -5,4 +5,4 @@ def generate_entity_candidates(entity: NamedEntity) -> list[str]:
     """
 
     """
-    pass
+    raise NotImplementedError()
