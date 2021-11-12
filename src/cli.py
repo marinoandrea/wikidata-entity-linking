@@ -1,7 +1,5 @@
 import argparse
 
-from nltk.util import pr
-
 PROGRAM_DESCRIPTION = '''    
 Welcome to '[WDPS 2021] - Assignment 1' CLI.
 
@@ -24,6 +22,16 @@ def parse_cl_args() -> list[str]:
         prog='wdps-assignment1',
         description=PROGRAM_DESCRIPTION)
     parser.add_argument(
+        'archive',
+        nargs=1,
+        type=str,
+        help='WARC archive you want to process.')
+    """
+    NOTE(andrea): this is the interface we designed initially.
+    Unfortunately it looks like the grading script needs to have
+    specific CLI interface.
+
+    parser.add_argument(
         'archives',
         metavar='archive_path',
         nargs='+',
@@ -34,5 +42,8 @@ def parse_cl_args() -> list[str]:
         required=True,
         type=str,
         help='Output TSV file path. The file will be created if it does not exist, if it exists, it will be overwritten.')
+    """
     args = parser.parse_args()
-    return args.archives, args.output  # type: ignore
+    if len(args.archive) != 1:
+        raise ValueError("Please input a single WARC path.")
+    return args.archive[0]  # type: ignore
