@@ -5,7 +5,6 @@ name = "pypi"
 
 [packages]
 yt = "*"
-trident = "*"
 elasticsearch = "*"
 beautifulsoup4 = "*"
 nltk = "*"
@@ -16,7 +15,7 @@ flake8 = "*"
 mypy = "*"
 
 [requires]
-python_version = "3.9"
+python_version = "3.7"
 
 [scripts]
 score = "python ./scripts/score.py"

@@ -1,4 +1,5 @@
 import argparse
+from typing import List
 
 PROGRAM_DESCRIPTION = '''    
 Welcome to '[WDPS 2021] - Assignment 1' CLI.
@@ -9,14 +10,14 @@ to this script.
 '''
 
 
-def parse_cl_args() -> list[str]:
+def parse_cl_args() -> List[str]:
     """
     Parses the CLI arguments. It returns
     the list of archive paths if provided.
 
     Returns
     -------
-    `list[str]` The list of paths provided to the program. 
+    `List[str]` The list of paths provided to the program. 
     """
     parser = argparse.ArgumentParser(
         prog='wdps-assignment1',

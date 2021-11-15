@@ -35,20 +35,21 @@ def extract_text_from_html(page: str) -> str:
 
     # NOTE(andrea): this casting is just to make mypy happy (bs4 has no typing)
     # we just use the body of the page here but we may want to also include the head
-    text = typing.cast(str, soup.get_text())
+    # text = typing.cast(str, soup.get_text())
 
     # cleaning spaces and newlines
-    # TODO(andrea): optimize this string manipulation
-    lines = (line.strip() for line in text.splitlines())
-    chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
-    text = "\n".join(chunk for chunk in chunks if chunk)
+    # TODO(andrea): find out whether this string manipulation (which
+    # should be optimized anyway) is actually needed
+    # lines = (line.strip() for line in text.splitlines())
+    # chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+    # text = "\n".join(chunk for chunk in chunks if chunk)
 
-    return text
+    return typing.cast(str, soup.get_text())
 
 
-def tokenize_and_tag_raw_text(text: str) -> list[tuple[str, str]]:
+def tokenize_and_tag_raw_text(text: str) -> typing.List[typing.Tuple[str, str]]:
     """
-    Returns a list of tuples in the form:
+    Returns a list of typing.Tuples in the form:
     - [0] token
     - [1] POS tag
 
@@ -59,27 +60,27 @@ def tokenize_and_tag_raw_text(text: str) -> list[tuple[str, str]]:
 
     Returns
     -------
-    `list[tuple[str, str]]` POS tagged tokens
+    `List[typing.Tuple[str, str]]` POS tagged tokens
     """
     tokens = nltk.word_tokenize(text)
     return nltk.pos_tag(tokens)  # type: ignore
 
 
-def extract_entities(tokens: list[tuple[str, str]]):
+def extract_entities(tokens: typing.List[typing.Tuple[str, str]]):
     """
-    Returns the named entities found in the provided list of tokens.
+    Returns the named entities found in the provided List of tokens.
 
     Parameters
     ----------
-    tokens: `list[tuple[str, str]]`
+    tokens: `List[typing.Tuple[str, str]]`
     List of pos tagged extracted tokens. 
 
     Returns
     -------
-    `list[NamedEntity]` List of labeled named entities.
+    `List[NamedEntity]` List of labeled named entities.
     """
     chunks = nltk.ne_chunk(tokens)
-    named_entities: list[NamedEntity] = []
+    named_entities: typing.List[NamedEntity] = []
     for chunk in chunks:
         # here we are removing non-labeled entities and other
         # words from the pipeline

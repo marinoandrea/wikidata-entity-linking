@@ -4,10 +4,11 @@ import os
 import time
 from functools import partial
 from multiprocessing.pool import ThreadPool
-from typing import Dict
+from typing import Dict, List
 
 from src.cli import parse_cl_args
 from src.interfaces import WARCJobInformation, WARCRecordMetadata
+from src.linking import generate_entity_candidates
 from src.parsing import (extract_entities, extract_text_from_html,
                          init_parsing, tokenize_and_tag_raw_text)
 from src.warc import extract_metadata_from_warc, stream_records_from_warc
@@ -54,10 +55,11 @@ def process_record(output_dict: Dict[WARCRecordMetadata, WARCJobInformation], re
     # NOTE(andrea): this number of threads is arbitrary
     # it does not have to be tight to the core count
     t_pool = ThreadPool(processes=mp.cpu_count())
+    entity_candidates = t_pool.map(generate_entity_candidates, named_entities)
 
     # TODO: do something with our named entities!
     # ....
-    #  entity_candidates = t_pool.map()
+    #
 
     # workaround for DictProxy update not working on nested fields
     _temp_job_info = output_dict[warc_metadata]
@@ -104,7 +106,7 @@ def flush_daemon(output_dict: Dict[WARCRecordMetadata, WARCJobInformation]):
     while True:
         time.sleep(DAEMON_SLEEP_TIME_S)
 
-        warc_to_delete: list[WARCRecordMetadata] = []
+        warc_to_delete: List[WARCRecordMetadata] = []
         for warc in output_dict.keys():
             if not output_dict[warc]['is_done'] or output_dict[warc]['is_flushed']:
                 continue

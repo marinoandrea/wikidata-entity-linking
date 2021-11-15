@@ -1,6 +1,6 @@
 import datetime
 from dataclasses import dataclass
-from typing import Optional
+from typing import List, Optional
 
 from typing_extensions import TypedDict
 
@@ -48,6 +48,6 @@ class WARCJobInformation(TypedDict):
     """
     Utility class used by the multiprocessing Manager dict.
     """
-    mappings: list[EntityMapping]
+    mappings: List[EntityMapping]
     is_done: bool
     is_flushed: bool
