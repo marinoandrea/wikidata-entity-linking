@@ -80,6 +80,8 @@ def extract_entities(tokens: typing.List[typing.Tuple[str, str]]):
     `List[NamedEntity]` List of labeled named entities.
     """
     chunks = nltk.ne_chunk(tokens)
+    # NOTE(andrea): we are explicitly not removing duplicates
+    # given the format of the output sample.
     named_entities: typing.List[NamedEntity] = []
     for chunk in chunks:
         # here we are removing non-labeled entities and other

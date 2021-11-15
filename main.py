@@ -6,8 +6,11 @@ from functools import partial
 from multiprocessing.pool import ThreadPool
 from typing import Dict, List
 
+import elasticsearch as es
+
 from src.cli import parse_cl_args
-from src.interfaces import WARCJobInformation, WARCRecordMetadata
+from src.interfaces import (EntityMapping, NamedEntity, WARCJobInformation,
+                            WARCRecordMetadata)
 from src.linking import generate_entity_candidates
 from src.parsing import (extract_entities, extract_text_from_html,
                          init_parsing, tokenize_and_tag_raw_text)
@@ -56,17 +59,25 @@ def process_record(output_dict: Dict[WARCRecordMetadata, WARCJobInformation], re
     # it does not have to be tight to the core count
     t_pool = ThreadPool(processes=mp.cpu_count())
 
-    # this is a list of lists which maps each named entity to
-    entity_candidates = t_pool.map(generate_entity_candidates, named_entities)
+    # the es client is thread safe, we spawn one for each child
+    # process due to complication with 'fork' mentioned in the es docs:
+    # https://elasticsearch-py.readthedocs.io/en/v7.15.2/api.html#elasticsearch
+    es_client = es.Elasticsearch(maxsize=len(named_entities))
 
-    # TODO: do something with our named entities!
-    # ....
-    #
+    # FIXME(andrea): we are now returning single candidates from this function
+    # but we are not ranking any of them.
+    # I would split this in two phases:
+    #   1) we generate the candidates list (this is I/O bound and benefits from threads)
+    #   2) we rank and finally pick a candidate (depending on our implementation this could be
+    #      also CPU intensive but I believe it also benefits from threads)
+    entity_candidates = t_pool.map(
+        partial(generate_entity_candidates, es_client), named_entities)
 
-    # workaround for DictProxy update not working on nested fields
-    _temp_job_info = output_dict[warc_metadata]
-    _temp_job_info['is_done'] = True
-    output_dict[warc_metadata] = _temp_job_info
+    output_dict[warc_metadata] = {
+        "mappings": [EntityMapping(named_entity=ent, entity_url=cand) for (ent, cand) in zip(named_entities, entity_candidates)],
+        "is_done": True,
+        "is_flushed": False
+    }
 
 
 def process_archive(output_dict: Dict[WARCRecordMetadata, WARCJobInformation], warc_path: str):
@@ -84,6 +95,7 @@ def process_archive(output_dict: Dict[WARCRecordMetadata, WARCJobInformation], w
     - warc_path `str`
     The WARC archive path.
     """
+
     pool = mp.Pool(processes=mp.cpu_count())
     pool.map(partial(process_record, output_dict),
              stream_records_from_warc(warc_path))
@@ -114,7 +126,7 @@ def flush_daemon(output_dict: Dict[WARCRecordMetadata, WARCJobInformation]):
                 continue
             for mapping in output_dict[warc]['mappings']:
                 print(
-                    f'{warc.trec_id}\t{mapping.named_entity.name}\t{mapping.entity_url}\n')
+                    f'{warc.trec_id}\t{mapping.named_entity.name}\t{mapping.entity_url}')
             # workaround for DictProxy update not working on nested fields
             _temp_job_info = output_dict[warc]
             _temp_job_info['is_flushed'] = True
