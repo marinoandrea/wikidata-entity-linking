@@ -55,6 +55,8 @@ def process_record(output_dict: Dict[WARCRecordMetadata, WARCJobInformation], re
     # NOTE(andrea): this number of threads is arbitrary
     # it does not have to be tight to the core count
     t_pool = ThreadPool(processes=mp.cpu_count())
+
+    # this is a list of lists which maps each named entity to
     entity_candidates = t_pool.map(generate_entity_candidates, named_entities)
 
     # TODO: do something with our named entities!
@@ -127,7 +129,7 @@ def init():
     """
     Initializes the program and the utilities.
     """
-    # we deactivate logging for 'development' mode
+    # we use logging only in 'development' mode
     logging.basicConfig(
         format='%(asctime)s [%(levelname)s]: %(message)s',
         level=logging.DEBUG if os.getenv('ENV') == 'development' else logging.CRITICAL)
