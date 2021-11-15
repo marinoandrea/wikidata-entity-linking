@@ -95,7 +95,7 @@ def extract_metadata_from_warc(warc_record: str) -> WARCRecordMetadata:
         if record_id_match is not None:
             record_id = record_id_match.groups()[0]
             # NOTE(andrea): here we are assuming that record id is the last field
-            # if this is not always trough then we must find a different way to deal
+            # if this is not always true then we must find a different way to deal
             # with WARC metadata parsing without scanning the whole file everytime.
             break
 
