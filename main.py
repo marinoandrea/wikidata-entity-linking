@@ -7,16 +7,19 @@ from multiprocessing.pool import ThreadPool
 from typing import Dict, List
 
 import elasticsearch as es
+import trident
 
 from src.cli import parse_cl_args
 from src.interfaces import (EntityMapping, NamedEntity, WARCJobInformation,
                             WARCRecordMetadata)
-from src.linking import generate_entity_candidates
+from src.linking import choose_entity_candidate, generate_entity_candidates
 from src.parsing import (extract_entities, extract_text_from_html,
                          init_parsing, tokenize_and_tag_raw_text)
 from src.warc import extract_metadata_from_warc, stream_records_from_warc
 
 DAEMON_SLEEP_TIME_S: float = 0.250
+KB_PATH: str = os.getenv(
+    'KB_PATH', "assets/wikidata-20200203-truthy-uri-tridentdb")
 
 
 def process_record(output_dict: Dict[WARCRecordMetadata, WARCJobInformation], record: str):
@@ -62,16 +65,18 @@ def process_record(output_dict: Dict[WARCRecordMetadata, WARCJobInformation], re
     # the es client is thread safe, we spawn one for each child
     # process due to complication with 'fork' mentioned in the es docs:
     # https://elasticsearch-py.readthedocs.io/en/v7.15.2/api.html#elasticsearch
-    es_client = es.Elasticsearch(maxsize=len(named_entities))
+    es_client = es.Elasticsearch(maxsize=mp.cpu_count())
 
-    # FIXME(andrea): we are now returning single candidates from this function
-    # but we are not ranking any of them.
-    # I would split this in two phases:
-    #   1) we generate the candidates list (this is I/O bound and benefits from threads)
-    #   2) we rank and finally pick a candidate (depending on our implementation this could be
-    #      also CPU intensive but I believe it also benefits from threads)
-    entity_candidates = t_pool.map(
+    entity_candidates_list = t_pool.map(
         partial(generate_entity_candidates, es_client), named_entities)
+
+    # the trident db is not typed nor we have access to a public repo
+    # so we have no assurance about thread safety, but since we only
+    # do read operations it should be fine
+    trident_db = trident.Db(KB_PATH)
+
+    entity_candidates = t_pool.map(
+        partial(choose_entity_candidate, trident_db), zip(named_entities, entity_candidates_list))
 
     output_dict[warc_metadata] = {
         "mappings": [EntityMapping(named_entity=ent, entity_url=cand) for (ent, cand) in zip(named_entities, entity_candidates)],

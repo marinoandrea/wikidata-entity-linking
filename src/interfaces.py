@@ -14,7 +14,7 @@ class NamedEntity:
 @dataclass(eq=True, frozen=True, unsafe_hash=False)
 class EntityMapping:
     named_entity: NamedEntity
-    entity_url: str
+    entity_url: Optional[str]
 
 
 @dataclass(eq=True, frozen=True, unsafe_hash=False)
