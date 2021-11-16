@@ -30,12 +30,12 @@ def generate_entity_candidates(es_client: es.Elasticsearch, entity: NamedEntity)
             "query": {
                 "query_string": {
                     "query": entity.name,
-                    "fields": ["schema_name"]
+                    "fields": ["schema_name", "schema_description"]
                 },
             }
         })
         return [hit['_id'] for hit in response['hits']['hits']] if response else []
-    except Exception:
+    except Exception as e:
         return []
 
 

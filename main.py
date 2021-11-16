@@ -17,7 +17,7 @@ from src.parsing import (extract_entities, extract_text_from_html,
                          init_parsing, tokenize_and_tag_raw_text)
 from src.warc import extract_metadata_from_warc, stream_records_from_warc
 
-DAEMON_SLEEP_TIME_S: float = 0.250
+DAEMON_SLEEP_TIME_S: float = 2
 KB_PATH: str = os.getenv(
     'KB_PATH', "assets/wikidata-20200203-truthy-uri-tridentdb")
 
