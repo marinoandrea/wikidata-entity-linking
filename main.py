@@ -4,6 +4,7 @@ import os
 import time
 from functools import partial
 from multiprocessing.pool import ThreadPool
+from pprint import pprint
 from typing import Dict, List
 
 import elasticsearch as es
@@ -100,7 +101,6 @@ def process_archive(output_dict: Dict[WARCRecordMetadata, WARCJobInformation], w
     - warc_path `str`
     The WARC archive path.
     """
-
     pool = mp.Pool(processes=mp.cpu_count())
     pool.map(partial(process_record, output_dict),
              stream_records_from_warc(warc_path))
