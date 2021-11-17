@@ -4,7 +4,6 @@ import os
 import time
 from functools import partial
 from multiprocessing.pool import ThreadPool
-from pprint import pprint
 from typing import Dict, List
 
 import elasticsearch as es
@@ -14,8 +13,7 @@ from src.cli import parse_cl_args
 from src.interfaces import (EntityMapping, NamedEntity, WARCJobInformation,
                             WARCRecordMetadata)
 from src.linking import choose_entity_candidate, generate_entity_candidates
-from src.parsing import (extract_entities, extract_text_from_html,
-                         init_parsing, tokenize_and_tag_raw_text)
+from src.parsing import extract_entities, extract_text_from_html
 from src.warc import extract_metadata_from_warc, stream_records_from_warc
 
 DAEMON_SLEEP_TIME_S: float = 2
@@ -56,8 +54,10 @@ def process_record(output_dict: Dict[WARCRecordMetadata, WARCJobInformation], re
     }
 
     text = extract_text_from_html(record)
-    tagged_tokens = tokenize_and_tag_raw_text(text)
-    named_entities = extract_entities(tagged_tokens)
+    named_entities = extract_entities(text)
+
+    # free some memory
+    del text
 
     # NOTE(andrea): this number of threads is arbitrary
     # it does not have to be tight to the core count
@@ -76,8 +76,10 @@ def process_record(output_dict: Dict[WARCRecordMetadata, WARCJobInformation], re
     # do read operations it should be fine
     trident_db = trident.Db(KB_PATH)
 
+    candidate_cache: Dict[NamedEntity, str] = {}
+
     entity_candidates = t_pool.map(
-        partial(choose_entity_candidate, trident_db), zip(named_entities, entity_candidates_list))
+        partial(choose_entity_candidate, trident_db, candidate_cache), zip(named_entities, entity_candidates_list))
 
     output_dict[warc_metadata] = {
         "mappings": [EntityMapping(named_entity=ent, entity_url=cand) for (ent, cand) in zip(named_entities, entity_candidates)],
@@ -150,8 +152,6 @@ def init():
     logging.basicConfig(
         format='%(asctime)s [%(levelname)s]: %(message)s',
         level=logging.DEBUG if os.getenv('ENV') == 'development' else logging.CRITICAL)
-    logging.info('initializing NLTK dependencies')
-    init_parsing()
 
 
 def main():

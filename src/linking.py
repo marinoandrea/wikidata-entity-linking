@@ -1,6 +1,4 @@
 import json
-from pprint import pprint
-from time import time
 from typing import Dict, List, Optional, Set, Tuple
 
 import elasticsearch as es
@@ -15,8 +13,26 @@ PREFIX wdp: <http://www.wikidata.org/prop/direct/>
 PREFIX wdpn: <http://www.wikidata.org/prop/direct-normalized/>
 '''
 
-
-SPARQL_RESULT_VAR_NAME: str = 'record'
+LABEL_SUPERCLASS_LOOKUP_TABLE: Dict[str, str] = {
+    'PERSON': 'Q5',
+    'NORP': 'Q16334295',
+    'FAC': 'Q41176',
+    'ORG': 'Q43229',
+    'GPE': 'Q16562419',
+    'LOC': 'Q27096213',
+    'PRODUCT': 'Q2424752',
+    'EVENT': 'Q1190554',
+    'WORK_OF_ART': 'Q838948',
+    'LAW': 'Q1151067',
+    'LANGUAGE': 'Q34770',
+    'DATE': 'Q205892',
+    'TIME': 'Q2199864',
+    'PERCENT': 'Q11229',
+    'MONEY': 'Q30242023',
+    'QUANTITY': 'Q107715',
+    'ORDINAL': 'Q191780',
+    'CARDINAL': 'Q163875'
+}
 
 
 @cached
@@ -44,7 +60,7 @@ def generate_entity_candidates(es_client: es.Elasticsearch, entity: NamedEntity)
                 "query": {
                     "query_string": {
                         "query": entity.name,
-                        "fields": ["schema_name", "schema_description"]
+                        "fields": ["schema_name", "schema_label"]
                     },
                 }
             })
@@ -53,10 +69,11 @@ def generate_entity_candidates(es_client: es.Elasticsearch, entity: NamedEntity)
         return set()
 
 
-candidate_cache: Dict[NamedEntity, str] = {}
-
-
-def choose_entity_candidate(trident_db: trident.Db, entity_with_candidates: Tuple[NamedEntity, Set[str]]) -> Optional[str]:
+def choose_entity_candidate(
+    trident_db: trident.Db,
+    candidate_cache: Dict[NamedEntity, str],
+    entity_with_candidates: Tuple[NamedEntity, Set[str]]
+) -> Optional[str]:
     """
     Given a name entity and a list of candidates it uses the Trident db
     to perform SPARQL queris tailored to the specific entity category and
@@ -66,6 +83,9 @@ def choose_entity_candidate(trident_db: trident.Db, entity_with_candidates: Tupl
     ----------
     trident_db: `trident.Db`
     Trident db client instance.
+
+    candidate_cache: `Dict[NamedEntity, str]`
+    Selected candidate cache per named entity.
 
     entity_with_candidates: `Tuple[NamedEntity, List[str]]`
     Tuple of named entity ([0]) alongside its candidates ids ([1]).
@@ -82,89 +102,39 @@ def choose_entity_candidate(trident_db: trident.Db, entity_with_candidates: Tupl
     if entity in candidate_cache:
         return candidate_cache[entity]
 
-    query = f'''
-    {SPARQL_QUERY_PREFIX}
-    SELECT ?record
-    WHERE {{
-    '''
-
-    if entity.label == 'PERSON':
-        query += '?record wdp:P31 wde:Q5.'          # human
-
-    elif entity.label == 'NORP':
-        query += '?record wdp:P31 wde:Q16334295.'   # human group
-
-    elif entity.label == 'FAC':
-        query += '?record wdp:P31 wde:Q41176.'      # building
-
-    elif entity.label == 'ORG':
-        query += '?record wdp:P31 wde:Q43229.'      # organization
-
-    elif entity.label == 'GPE':
-        query += '?record wdp:P31 wde:Q16562419.'   # political entity
-
-    elif entity.label == 'LOC':
-        query += '?record wdp:P31 wde:Q27096213.'   # geographic entity
-
-    elif entity.label == 'PRODUCT':
-        query += '?record wdp:P31 wde:Q2424752.'    # product
-
-    elif entity.label == 'EVENT':
-        query += '?record wdp:P31 wde:Q1190554.'    # occurrence
-
-    elif entity.label == 'WORK_OF_ART':
-        query += '?record wdp:P31 wde:Q838948.'     # work of art
-
-    elif entity.label == 'LAW':
-        query += '?record wdp:P31 wde:Q1151067.'    # rule (law)
-
-    elif entity.label == 'LANGUAGE':
-        query += '?record wdp:P31 wde:Q34770.'      # language
-
-    elif entity.label == 'DATE':
-        query += '?record wdp:P31 wde:Q205892.'     # calendar date
-
-    elif entity.label == 'TIME':
-        query += '?record wdp:P31 wde:Q2199864.'    # duration
-
-    elif entity.label == 'PERCENT':
-        query += '?record wdp:P31 wde:Q11229.'      # percent
-
-    elif entity.label == 'MONEY':
-        query += '?record wdp:P31 wde:Q30242023.'   # money amount
-
-    elif entity.label == 'QUANTITY':
-        query += '?record wdp:P31 wde:Q107715.'     # physical quantity
-
-    elif entity.label == 'ORDINAL':
-        query += '?record wdp:P31 wde:Q191780.'     # ordinal number
-
-    elif entity.label == 'CARDINAL':
-        query += '?record wdp:P31 wde:Q163875.'     # cardinal number
-
-    else:
-        return candidates.pop()
-
-    query += f'''
-        FILTER ( {' || '.join(f"?record = wde:{c.replace('>', '').split('/')[-1]}" for c in candidates)} )
-    }}
-    LIMIT 10
-    '''
-
-    results = trident_db.sparql(query)
-    json_results = json.loads(results)
-
     filtered_candidates: List[str] = []
-    for result in json_results['results']['bindings']:
-        try:
-            filtered_candidates.append(
-                next(c for c in candidates if result[SPARQL_RESULT_VAR_NAME]['value']))
-        except StopIteration:
+
+    for candidate in candidates:
+
+        id = candidate\
+            .replace('>', '')\
+            .split('/')[-1]
+
+        superclass = LABEL_SUPERCLASS_LOOKUP_TABLE.get(entity.label, None)
+
+        if superclass is None:
             continue
 
-    # NOTE(andrea): if we don't find anything with trident we just naively
-    # return one of the initial elasticsearch candidates
-    if len(filtered_candidates) == 0:
-        return candidates.pop()
+        query = f'''
+        {SPARQL_QUERY_PREFIX}
+        select *
+        where {{ wde:{id} wdp:P31 wde:{superclass} }}
+        limit 10
+        '''
 
-    return filtered_candidates[0]
+        results = trident_db.sparql(query)
+        json_results = json.loads(results)
+
+        if json_results is not None and 'nresults' in json_results['stats'] and int(json_results['stats']['nresults']) > 0:
+            filtered_candidates.append(candidate)
+
+    if len(filtered_candidates) == 0:
+        # NOTE(andrea): if we don't find anything with trident we just naively
+        # return one of the initial elasticsearch candidates
+        candidate_cache[entity] = next(c for c in candidates)
+    else:
+        # TODO(andrea): we should have a ranking strategy for
+        # selecting one of the filtered candidates
+        candidate_cache[entity] = filtered_candidates[0]
+
+    return candidate_cache[entity]
