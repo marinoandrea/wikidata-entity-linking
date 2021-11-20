@@ -10,6 +10,12 @@ class NamedEntity:
     name: str
     label: str
 
+@dataclass(eq= True, frozen=True, unsafe_hash=False)
+class CandidateNamedEntity:
+    id: str
+    score: float
+    description: str
+
 
 @dataclass(eq=True, frozen=True, unsafe_hash=False)
 class EntityMapping:

@@ -1,10 +1,10 @@
 import json
-from typing import Dict, List, Optional, Set, Tuple
+from typing import DefaultDict, Dict, List, Optional, Set, Tuple
 
 import elasticsearch as es
 import trident
 
-from src.interfaces import NamedEntity
+from src.interfaces import CandidateNamedEntity, NamedEntity
 from src.utils import cached
 
 SPARQL_QUERY_PREFIX: str = '''
@@ -64,7 +64,18 @@ def generate_entity_candidates(es_client: es.Elasticsearch, entity: NamedEntity)
                     },
                 }
             })
-        return {hit['_id'] for hit in response['hits']['hits']} if response else set()
+        print(f'response:\n{response}')
+        # return {hit['_id'] for hit in response['hits']['hits']} if response else set()
+        res_objects={}
+        for res in response['hit']['hits']:
+            # print(f'res: {res}')
+            # print(f'res.get(): {res.get("_source")}')
+            res_objects.add(CandidateNamedEntity(id = res["_id"], score=res["_score"],description= res.get("_source").get("schema_description", "") ) )
+        print(res_objects)
+        return res_objects
+
+    # print(entity_candidate_res)
+
     except Exception as e:
         return set()
 
