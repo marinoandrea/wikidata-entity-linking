@@ -77,7 +77,7 @@ def generate_entity_candidates(es_client: es.Elasticsearch, entity: NamedEntity)
 
 def choose_entity_candidate(
     candidate_cache: Dict[NamedEntity, str],
-    entity_with_candidates: Tuple[NamedEntity, Set[str]]
+    entity_with_candidates: Tuple[NamedEntity, Set[CandidateNamedEntity]]
 ) -> Optional[str]:
     """
     Given a name entity and a list of candidates it uses the Trident db
@@ -107,8 +107,8 @@ def choose_entity_candidate(
     if entity in candidate_cache:
         return candidate_cache[entity]
 
-    for candidate_id in candidates:
-        trident_queue.put(TridentQueryTask(candidate_id=candidate_id))
+    for c in candidates:
+        trident_queue.put(TridentQueryTask(candidate_id=c.id))
 
     # TODO(andrea): actually wait for the result and do something
 
