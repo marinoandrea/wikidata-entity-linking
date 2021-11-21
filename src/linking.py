@@ -1,10 +1,9 @@
-import multiprocessing as mp
 from typing import Dict, Optional, Set, Tuple
 
 import elasticsearch as es
 
 from src.globals import trident_queue
-from src.interfaces import NamedEntity, TridentQueryTask
+from src.interfaces import CandidateNamedEntity, NamedEntity, TridentQueryTask
 from src.utils import cached
 
 SPARQL_QUERY_PREFIX: str = '''
@@ -36,7 +35,7 @@ LABEL_SUPERCLASS_LOOKUP_TABLE: Dict[str, str] = {
 
 
 @cached
-def generate_entity_candidates(es_client: es.Elasticsearch, entity: NamedEntity) -> Set[str]:
+def generate_entity_candidates(es_client: es.Elasticsearch, entity: NamedEntity) -> Set[CandidateNamedEntity]:
     """
     Queries local elasticsearch instance for entity candidates based on simple
     string comparison between named entity and wikidata `doc.schema_name`.
@@ -64,7 +63,14 @@ def generate_entity_candidates(es_client: es.Elasticsearch, entity: NamedEntity)
                     },
                 }
             })
-        return {hit['_id'] for hit in response['hits']['hits']} if response else set()
+        return {
+            CandidateNamedEntity(
+                id=res["_id"],
+                score=res["_score"],
+                description=res.get("_source").get("schema_description", ""))
+            for res in response['hits']['hits']
+        }
+
     except Exception as e:
         return set()
 
