@@ -1,6 +1,6 @@
 import datetime
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from typing_extensions import TypedDict
 
@@ -51,3 +51,12 @@ class WARCJobInformation(TypedDict):
     mappings: List[EntityMapping]
     is_done: bool
     is_flushed: bool
+
+
+@dataclass(eq=True, frozen=True, unsafe_hash=False)
+class TridentQueryTask:
+    candidate_id: str
+    is_completed: bool = False
+    # FIXME(andrea): `Any` here is temporairy, until we finalize
+    # the queries
+    results: List[Any] = []

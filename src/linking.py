@@ -1,10 +1,10 @@
-import json
-from typing import Dict, List, Optional, Set, Tuple
+import multiprocessing as mp
+from typing import Dict, Optional, Set, Tuple
 
 import elasticsearch as es
-import trident
 
-from src.interfaces import NamedEntity
+from src.globals import trident_queue
+from src.interfaces import NamedEntity, TridentQueryTask
 from src.utils import cached
 
 SPARQL_QUERY_PREFIX: str = '''
@@ -70,7 +70,6 @@ def generate_entity_candidates(es_client: es.Elasticsearch, entity: NamedEntity)
 
 
 def choose_entity_candidate(
-    trident_db: trident.Db,
     candidate_cache: Dict[NamedEntity, str],
     entity_with_candidates: Tuple[NamedEntity, Set[str]]
 ) -> Optional[str]:
@@ -102,39 +101,10 @@ def choose_entity_candidate(
     if entity in candidate_cache:
         return candidate_cache[entity]
 
-    filtered_candidates: List[str] = []
+    for candidate_id in candidates:
+        trident_queue.put(TridentQueryTask(candidate_id=candidate_id))
 
-    for candidate in candidates:
+    # TODO(andrea): actually wait for the result and do something
 
-        id = candidate\
-            .replace('>', '')\
-            .split('/')[-1]
-
-        superclass = LABEL_SUPERCLASS_LOOKUP_TABLE.get(entity.label, None)
-
-        if superclass is None:
-            continue
-
-        query = f'''
-        {SPARQL_QUERY_PREFIX}
-        select *
-        where {{ wde:{id} wdp:P31 wde:{superclass} }}
-        limit 10
-        '''
-
-        results = trident_db.sparql(query)
-        json_results = json.loads(results)
-
-        if json_results is not None and 'nresults' in json_results['stats'] and int(json_results['stats']['nresults']) > 0:
-            filtered_candidates.append(candidate)
-
-    if len(filtered_candidates) == 0:
-        # NOTE(andrea): if we don't find anything with trident we just naively
-        # return one of the initial elasticsearch candidates
-        candidate_cache[entity] = next(c for c in candidates)
-    else:
-        # TODO(andrea): we should have a ranking strategy for
-        # selecting one of the filtered candidates
-        candidate_cache[entity] = filtered_candidates[0]
-
+    candidate_cache[entity] = candidates.pop()
     return candidate_cache[entity]
