@@ -42,6 +42,11 @@ class WARCRecordMetadata:
     WARC-Record-ID: <urn:uuid:f638c914-658d-418a-93f8-6e89a4858359>
     ```
     """
+    # FIXME(andrea): we are still using trec_id instaed of record_id
+    # because that's how the sample that we use for testing is formatted
+    # However, it was mentioned on canvas that we should use record_id for
+    # the submission. It is crucial that we swap these in the warc metadata
+    # parsing and subsequent output to console.
     trec_id: str
     w_type: Optional[str] = None
     date: Optional[datetime.datetime] = None
