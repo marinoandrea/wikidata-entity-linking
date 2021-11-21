@@ -4,7 +4,6 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-yt = "*"
 elasticsearch = "*"
 beautifulsoup4 = "*"
 nltk = "*"
@@ -18,4 +17,6 @@ mypy = "*"
 python_version = "3.7"
 
 [scripts]
+setup = "sudo sysctl -w vm.max_map_count=262144"
+start = "docker run -ti --name wdps-assignment1 -v $WDPS_ASSIGNMENT1_FOLDER:/app/assignment -p 9200:9200 karmaresearch/wdps_assignment"
 score = "python ./scripts/score.py"
