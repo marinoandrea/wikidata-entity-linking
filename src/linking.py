@@ -112,5 +112,5 @@ def choose_entity_candidate(
 
     # TODO(andrea): actually wait for the result and do something
 
-    candidate_cache[entity] = candidates.pop()
+    candidate_cache[entity] = candidates.pop().id
     return candidate_cache[entity]
