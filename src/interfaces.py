@@ -1,3 +1,4 @@
+import dataclasses
 import datetime
 from dataclasses import dataclass
 from typing import Any, List, Optional
@@ -15,6 +16,7 @@ class NamedEntity:
 class CandidateNamedEntity:
     id: str
     score: float
+    label: str
     description: str
 
 
@@ -71,4 +73,4 @@ class TridentQueryTask:
     is_completed: bool = False
     # FIXME(andrea): `Any` here is temporairy, until we finalize
     # the queries
-    results: List[Any] = []
+    results: List[Any] = dataclasses.field(default_factory=lambda: [])

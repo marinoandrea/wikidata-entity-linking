@@ -50,7 +50,7 @@ def generate_entity_candidates(es_client: es.Elasticsearch, entity: NamedEntity)
 
     Returns
     -------
-    `List[str]` List of candidates in the form of wikidata doc ids.
+    `Set[CandidateNamedEntity]` List of candidates in the form of wikidata docs metadata.
     """
     try:
         response = es_client.search(
@@ -67,7 +67,8 @@ def generate_entity_candidates(es_client: es.Elasticsearch, entity: NamedEntity)
             CandidateNamedEntity(
                 id=res["_id"],
                 score=res["_score"],
-                description=res.get("_source").get("schema_description", ""))
+                label=res['_source'].get("schema_label", ""),
+                description=res['_source'].get("schema_description", ""))
             for res in response['hits']['hits']
         }
 
