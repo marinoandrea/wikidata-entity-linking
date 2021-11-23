@@ -1,5 +1,6 @@
 import multiprocessing as mp
 import os
+from typing import Set, Tuple
 
 import trident
 
@@ -21,7 +22,12 @@ def fetch_id(term: str) -> int:
     return out
 
 
+@cached
+def fetch_attributes(entity_id: int) -> Set[Tuple[int, int]]:
+    return set(trident_db.po(entity_id))
+
 # pre-fetch utility trident ids
+
 
 # instance of
 PREDICATE_ID_P31 = fetch_id('<http://www.wikidata.org/prop/direct/P31>')
@@ -63,8 +69,8 @@ def score_gpe(entity_id: int) -> float:
         (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q532>')),
         (PREDICATE_ID_P279, fetch_id('<http://www.wikidata.org/entity/Q7930989>'))
     }
-    attributes = trident_db.po(entity_id)
-    return len(set(attributes) & template_attributes) / len(template_attributes)
+    attributes = fetch_attributes(entity_id)
+    return len(attributes & template_attributes) / len(template_attributes)
 
 
 def score_loc(entity_id: int) -> float:
