@@ -7,7 +7,7 @@ class Db:
         ...
 
     @staticmethod
-    def lookup_id(term: str) -> Optional[str]:
+    def lookup_id(term: str) -> Optional[int]:
         ...
 
     @staticmethod
