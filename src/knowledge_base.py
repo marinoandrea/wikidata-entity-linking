@@ -35,6 +35,10 @@ PREDICATE_ID_P31 = fetch_id('<http://www.wikidata.org/prop/direct/P31>')
 PREDICATE_ID_P279 = fetch_id('<http://www.wikidata.org/prop/direct/P279>')
 # named after
 PREDICATE_ID_P138 = fetch_id('<http://www.wikidata.org/prop/direct/P138>')
+# followed by
+PREDICATE_ID_P156 = fetch_id('<http://www.wikidata.org/prop/direct/P156>')
+# day of week
+PREDICATE_ID_P2894 = fetch_id('<http://www.wikidata.org/prop/direct/P2894>')
 
 
 def score_person(entity_id: int) -> float:
@@ -110,11 +114,28 @@ def score_law(entity_id: int) -> float:
 
 
 def score_language(entity_id: int) -> float:
-    raise NotImplementedError()
+    template_attributes = {
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q34770>')),
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q1288568>')),
+    }
+    attributes = fetch_attributes(entity_id)
+    return len(attributes & template_attributes) / len(template_attributes)
 
 
 def score_date(entity_id: int) -> float:
-    raise NotImplementedError()
+    template_attributes = {
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q14795564>')),
+        # days of the week
+        (PREDICATE_ID_P2894, fetch_id('<http://www.wikidata.org/entity/Q132>')),
+        (PREDICATE_ID_P2894, fetch_id('<http://www.wikidata.org/entity/Q105>')),
+        (PREDICATE_ID_P2894, fetch_id('<http://www.wikidata.org/entity/Q127>')),
+        (PREDICATE_ID_P2894, fetch_id('<http://www.wikidata.org/entity/Q128>')),
+        (PREDICATE_ID_P2894, fetch_id('<http://www.wikidata.org/entity/Q129>')),
+        (PREDICATE_ID_P2894, fetch_id('<http://www.wikidata.org/entity/Q130>')),
+        (PREDICATE_ID_P2894, fetch_id('<http://www.wikidata.org/entity/Q131>')),
+    }
+    attributes = fetch_attributes(entity_id)
+    return len(attributes & template_attributes) / len(template_attributes)
 
 
 @cached
