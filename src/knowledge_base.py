@@ -33,6 +33,8 @@ def fetch_attributes(entity_id: int) -> Set[Tuple[int, int]]:
 PREDICATE_ID_P31 = fetch_id('<http://www.wikidata.org/prop/direct/P31>')
 # subclass of
 PREDICATE_ID_P279 = fetch_id('<http://www.wikidata.org/prop/direct/P279>')
+# named after
+PREDICATE_ID_P138 = fetch_id('<http://www.wikidata.org/prop/direct/P138>')
 
 
 def score_person(entity_id: int) -> float:
@@ -43,7 +45,21 @@ def score_person(entity_id: int) -> float:
 
 
 def score_norp(entity_id: int) -> float:
-    raise NotImplementedError()
+    template_attributes = {
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q41710>')),
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q33829>')),
+        (PREDICATE_ID_P279, fetch_id('<http://www.wikidata.org/entity/Q22947>')),
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q6266>')),
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q4392985>')),
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q16334295>')),
+        (PREDICATE_ID_P279, fetch_id('<http://www.wikidata.org/entity/Q17573152>')),
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/P140>')),
+        (PREDICATE_ID_P279, fetch_id('<http://www.wikidata.org/entity/Q7140620>')),
+        (PREDICATE_ID_P279, fetch_id('<http://www.wikidata.org/entity/Q844569>')),
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q11499147>')),
+    }
+    attributes = fetch_attributes(entity_id)
+    return len(attributes & template_attributes) / len(template_attributes)
 
 
 def score_fac(entity_id: int) -> float:
