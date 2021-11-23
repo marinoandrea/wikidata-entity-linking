@@ -1,13 +1,13 @@
 import typing
 
 import bs4
-import en_core_web_sm
+import spacy
 
-from src.interfaces import NamedEntity
+from src.interfaces import EntityLabel, NamedEntity
 
 NON_RELEVANT_HTML_TAGS = ["script", "style", "link", "noscript"]
 
-perform_ner = en_core_web_sm.load()
+perform_ner = spacy.load("en_core_web_sm")
 
 
 def extract_text_from_html(page: str) -> str:
@@ -54,8 +54,17 @@ def extract_entities(text: str) -> typing.Set[NamedEntity]:
     for entity in doc.ents:
         # NOTE(andrea): we may not want to do this but looking at the sample
         # simple numbers are not considered
-        if entity.label_ in ['CARDINAL', 'ORDINAL']:
+        if entity.label_ in {'CARDINAL', 'ORDINAL', 'PERCENT', 'QUANTITY', 'TIME', 'MONEY'}:
             continue
-        n_entity = NamedEntity(name=entity.text.strip(), label=entity.label_)
-        out.add(n_entity)
+
+        # we prevent entities
+        multiple_spaces_split = entity.text.strip().split('  ')
+        for sub_entt in multiple_spaces_split:
+
+            # TODO(andrea): implement capital letter check
+            # if len(sub_entt) > 1
+
+            out.add(NamedEntity(name=sub_entt.strip(),
+                                label=EntityLabel(entity.label_)))
+
     return out

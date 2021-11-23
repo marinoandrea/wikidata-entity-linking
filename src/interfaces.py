@@ -1,15 +1,35 @@
 import dataclasses
 import datetime
 from dataclasses import dataclass
-from typing import Any, List, Optional
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set
 
 from typing_extensions import TypedDict
+
+
+class EntityLabel(Enum):
+    """
+    Enumeration of NER labels (same as spacy library).
+    """
+    PERSON = 'PERSON'
+    NORP = 'NORP'
+    FAC = 'FAC'
+    ORG = 'ORG'
+    GPE = 'GPE'
+    LOC = 'LOC'
+    PRODUCT = 'PRODUCT'
+    EVENT = 'EVENT'
+    WORK_OF_ART = 'WORK_OF_ART'
+    LAW = 'LAW'
+    LANGUAGE = 'LANGUAGE'
+    DATE = 'DATE'
+    TIME = 'TIME'
 
 
 @dataclass(eq=True, frozen=True, unsafe_hash=False)
 class NamedEntity:
     name: str
-    label: str
+    label: EntityLabel
 
 
 @dataclass(eq=True, frozen=True, unsafe_hash=False)
@@ -18,6 +38,9 @@ class CandidateNamedEntity:
     score: float
     label: str
     description: str
+    # TODO(andrea): actually extract ranges from text
+    range_start: int = 0
+    range_end: int = 0
 
 
 @dataclass(eq=True, frozen=True, unsafe_hash=False)
@@ -69,8 +92,14 @@ class WARCJobInformation(TypedDict):
 
 @dataclass(eq=True, frozen=True, unsafe_hash=False)
 class TridentQueryTask:
-    candidate_id: str
-    is_completed: bool = False
-    # FIXME(andrea): `Any` here is temporairy, until we finalize
-    # the queries
-    results: List[Any] = dataclasses.field(default_factory=lambda: [])
+    warc_record: WARCRecordMetadata
+    candidate: CandidateNamedEntity
+
+
+@dataclass(eq=True, frozen=True, unsafe_hash=False)
+class TridentQueryResult:
+    _label: EntityLabel
+    _candidate_id: str
+    outdegree: int
+    indegree: int
+    is_label: bool
