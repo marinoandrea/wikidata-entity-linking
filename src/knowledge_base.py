@@ -26,6 +26,44 @@ def fetch_id(term: str) -> int:
 def fetch_attributes(entity_id: int) -> Set[Tuple[int, int]]:
     return set(trident_db.po(entity_id))
 
+
+@cached
+def score_candidate(label: EntityLabel, candidate: CandidateNamedEntity) -> float:
+    """
+    This function scores a named entity candidate based on compliance with
+    a specific NER label.
+
+    Parameters
+    ----------
+    candidate `CandidateNamedEntity`
+    The list of named entity candidates.
+
+    label `EntityLabel`
+    The label to compare the candidates with.
+
+    Returns
+    -------
+    `float` The compliance score.
+    """
+    trident_lock.acquire(block=True)
+    score = {
+        EntityLabel.PERSON: score_person,
+        EntityLabel.NORP: score_norp,
+        EntityLabel.FAC: score_fac,
+        EntityLabel.ORG: score_org,
+        EntityLabel.GPE: score_gpe,
+        EntityLabel.LOC: score_loc,
+        EntityLabel.PRODUCT: score_product,
+        EntityLabel.EVENT: score_event,
+        EntityLabel.WORK_OF_ART: score_work_of_art,
+        EntityLabel.LAW: score_law,
+        EntityLabel.LANGUAGE: score_language,
+        EntityLabel.DATE: score_date,
+    }[label](fetch_id(candidate.id))
+    trident_lock.release()
+    return score
+
+
 # pre-fetch utility trident ids
 
 
@@ -219,40 +257,3 @@ def score_date(entity_id: int) -> float:
     }
     attributes = fetch_attributes(entity_id)
     return len(attributes & template_attributes) / len(template_attributes)
-
-
-@cached
-def score_candidate(label: EntityLabel, candidate: CandidateNamedEntity) -> float:
-    """
-    This function scores a named entity candidate based on compliance with
-    a specific NER label.
-
-    Parameters
-    ----------
-    candidate `CandidateNamedEntity`
-    The list of named entity candidates.
-
-    label `EntityLabel`
-    The label to compare the candidates with.
-
-    Returns
-    -------
-    `float` The compliance score.
-    """
-    trident_lock.acquire(block=True)
-    score = {
-        EntityLabel.PERSON: score_person,
-        EntityLabel.NORP: score_norp,
-        EntityLabel.FAC: score_fac,
-        EntityLabel.ORG: score_org,
-        EntityLabel.GPE: score_gpe,
-        EntityLabel.LOC: score_loc,
-        EntityLabel.PRODUCT: score_product,
-        EntityLabel.EVENT: score_event,
-        EntityLabel.WORK_OF_ART: score_work_of_art,
-        EntityLabel.LAW: score_law,
-        EntityLabel.LANGUAGE: score_language,
-        EntityLabel.DATE: score_date,
-    }[label](fetch_id(candidate.id))
-    trident_lock.release()
-    return score
