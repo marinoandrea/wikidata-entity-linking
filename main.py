@@ -4,14 +4,13 @@ import os
 import time
 from functools import partial
 from multiprocessing.pool import ThreadPool
-from typing import Dict, List
+from typing import Dict
 
 import elasticsearch as es
 
 from src.cli import parse_cl_args
 from src.globals import shared_dict
-from src.interfaces import (CandidateNamedEntity, EntityMapping, NamedEntity,
-                            WARCRecordMetadata)
+from src.interfaces import CandidateNamedEntity, EntityMapping, NamedEntity
 from src.io import run_flush_daemon
 from src.linking import choose_entity_candidate, generate_entity_candidates
 from src.parsing import extract_entities, extract_text_from_html
