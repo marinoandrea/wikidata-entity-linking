@@ -16,14 +16,44 @@ trident_lock = mp.Lock()
 
 @cached
 def fetch_id(term: str) -> int:
+    """
+    Cached version of `trident.Db.lookup_id`. It expects 
+    given terms to be valid URIs.
+
+    Parameters
+    ----------
+    term `str`
+    The wikidata URI.
+
+    Returns
+    -------
+    'int' The trident internal ID.
+
+    Throws
+    ------
+    `ValueError` If the given `term` is not a valid wikidata URI in the graph.
+    """
     out = trident_db.lookup_id(term)
     if out is None:
-        raise RuntimeError(f"'{term}' is not a valid wikidata URI.")
+        raise ValueError(f"'{term}' is not a valid wikidata URI.")
     return out
 
 
 @cached
 def fetch_attributes(entity_id: int) -> Set[Tuple[int, int]]:
+    """
+    Cached version of `trident.Db.po`.
+
+    Parameters
+    ----------
+    entity_id `int`
+    The Trident internal ID.
+
+    Returns
+    -------
+    'Set[Tuple[int, int]]'
+    Set of tuples in the form (predicate, object).
+    """
     return set(trident_db.po(entity_id))
 
 
@@ -35,11 +65,11 @@ def score_candidate(label: EntityLabel, candidate: CandidateNamedEntity) -> floa
 
     Parameters
     ----------
-    candidate `CandidateNamedEntity`
-    The list of named entity candidates.
-
     label `EntityLabel`
     The label to compare the candidates with.
+
+    candidate `CandidateNamedEntity`
+    The list of named entity candidates.
 
     Returns
     -------
