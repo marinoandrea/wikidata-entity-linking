@@ -42,10 +42,10 @@ PREDICATE_ID_P2894 = fetch_id('<http://www.wikidata.org/prop/direct/P2894>')
 
 
 def score_person(entity_id: int) -> float:
-    return 1 if trident_db.exists(
-        entity_id,
-        PREDICATE_ID_P31,
-        fetch_id('<http://www.wikidata.org/entity/Q5>')) else 0
+    if not trident_db.exists(entity_id, PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q5>')):
+        return 0
+    attributes = fetch_attributes(entity_id)
+    return len(attributes) / 150
 
 
 def score_norp(entity_id: int) -> float:
