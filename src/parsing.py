@@ -54,12 +54,15 @@ def extract_entities(text: str) -> typing.Set[NamedEntity]:
     for entity in doc.ents:
         # NOTE(andrea): we may not want to do this but looking at the sample
         # simple numbers are not considered
-        if entity.label_ in {'CARDINAL', 'ORDINAL', 'PERCENT', 'QUANTITY', 'TIME', 'MONEY'}:
+        if entity.label_ in {'CARDINAL', 'ORDINAL', 'PERCENT', 'QUANTITY', 'TIME', 'MONEY', 'DATE'}:
             continue
 
         # we prevent entities
         multiple_spaces_split = entity.text.strip().split('  ')
         for sub_entt in multiple_spaces_split:
+
+            if sub_entt.startswith('http://') or sub_entt.startswith('https://'):
+                continue
 
             # TODO(andrea): implement capital letter check
             # if len(sub_entt) > 1
