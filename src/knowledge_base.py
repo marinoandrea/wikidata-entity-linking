@@ -40,6 +40,22 @@ PREDICATE_ID_P156 = fetch_id('<http://www.wikidata.org/prop/direct/P156>')
 # day of week
 PREDICATE_ID_P2894 = fetch_id('<http://www.wikidata.org/prop/direct/P2894>')
 
+# if they have P1476 & P136 -> work of art but -> check presence 
+#  title i.e. movie 
+PREDICATE_ID_P1476 = fetch_id('<http://www.wikidata.org/prop/direct/P1476>')
+# genre type of film / movie / kind of music 
+PREDICATE_ID_P136 = fetch_id('<http://www.wikidata.org/prop/direct/P136>')
+# made from materials 
+PREDICATE_ID_P186 = fetch_id('<http://www.wikidata.org/prop/direct/P186>')
+# cars - industry
+PREDICATE_ID_P452 = fetch_id('<http://www.wikidata.org/prop/direct/P452>')
+# if attributes: start time (P580) & end time (P582) -> events
+PREDICATE_ID_P580 = fetch_id('<http://www.wikidata.org/prop/direct/P580>')
+PREDICATE_ID_P582 = fetch_id('<http://www.wikidata.org/prop/direct/P580>')
+# if attribute lowest atmospheric pressure (P2532) or part of the series (P179) -> Hurricane 
+PREDICATE_ID_P2532 = fetch_id('<http://www.wikidata.org/prop/direct/P2532>')
+PREDICATE_ID_P179 = fetch_id('<http://www.wikidata.org/prop/direct/P179>')
+
 
 def score_person(entity_id: int) -> float:
     if not trident_db.exists(entity_id, PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q5>')):
@@ -98,16 +114,82 @@ def score_loc(entity_id: int) -> float:
 
 
 def score_product(entity_id: int) -> float:
-    raise NotImplementedError()
+    # instance of food, cars, objects 
+    template_attributes = {
+        # food 
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q2095>')),
+        (PREDICATE_ID_P279, fetch_id('<http://www.wikidata.org/entity/Q2095>')),
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q746549>')),
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q17062980>')),
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q84431525>')),
+        # cars 
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q10429667>')),
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q786820>')),
+        (PREDICATE_ID_P452, fetch_id('<http://www.wikidata.org/entity/Q190117>')),
+        # objects
+        (PREDICATE_ID_P279, fetch_id('<http://www.wikidata.org/entity/Q2578402>')),
+        (PREDICATE_ID_P279, fetch_id('<http://www.wikidata.org/entity/Q811367>')),
+        (PREDICATE_ID_P279, fetch_id('<http://www.wikidata.org/entity/Q39546>')),
+        (PREDICATE_ID_P279, fetch_id('<http://www.wikidata.org/entity/Q1183543>')),
 
+    }
+    attributes = fetch_attributes(entity_id)
+    return len(attributes & template_attributes) / len(template_attributes)
 
 def score_event(entity_id: int) -> float:
-    raise NotImplementedError()
+    # instance of Wars, rebellions, battles, sport, hurricanes  
+    template_attributes = {
+        # wars 
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q103495>')),
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q11514315>')),
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q198>')),
+
+        # rebellions
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q124734>')),
+
+        # battles: includes part of & location & point in time
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q178561>')),
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q1261499>')),
+
+        # sport
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q18608583>')),
+        (PREDICATE_ID_P279, fetch_id('<http://www.wikidata.org/entity/Q44637051>')),
+        
+
+
+        # hurricane Saffir–Simpson classification category 1 - 5 
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q63100559>')),
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q63100584>')),
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q63100595>')),
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q63100601>')),
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q63100611>')),
+        (PREDICATE_ID_P179, fetch_id('<http://www.wikidata.org/entity/Q205801>')),
+
+
+    }
+    attributes = fetch_attributes(entity_id)
+    return len(attributes & template_attributes) / len(template_attributes)
 
 
 def score_work_of_art(entity_id: int) -> float:
-    raise NotImplementedError()
+    # movies, songs, books, novels, sculptures --> title p1476 & genre p136
+    template_attributes = {
+        # film 
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q11424>')),
+        # single 
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q134556>')),
+        # song
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q7366>')),
+        # sculpture 
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q860861>')),
+        # archaeological findings
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q10855061>')),
+        # literary work 
+        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q7725634>')),
 
+    }
+    attributes = fetch_attributes(entity_id)
+    return len(attributes & template_attributes) / len(template_attributes)
 
 def score_law(entity_id: int) -> float:
     raise NotImplementedError()
