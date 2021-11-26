@@ -192,8 +192,10 @@ def score_norp(entity_id: int) -> float:
 
 
 def score_fac(entity_id: int) -> float:
-    return 0
-
+    attributes = fetch_attributes(entity_id)
+    if (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q41176>')) not in attributes:
+        return 0
+    return len(attributes)
 
 def score_org(entity_id: int) -> float:
     attributes = fetch_attributes(entity_id)
@@ -222,7 +224,10 @@ def score_gpe(entity_id: int) -> float:
 
 
 def score_loc(entity_id: int) -> float:
-    return 0
+    attributes = fetch_attributes(entity_id)
+    if (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q2221906>')) not in attributes:
+        return 0
+    return len(attributes)
 
 
 def score_product(entity_id: int) -> float:
@@ -304,7 +309,10 @@ def score_work_of_art(entity_id: int) -> float:
 
 
 def score_law(entity_id: int) -> float:
-    return 0
+    attributes = fetch_attributes(entity_id)
+    if (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q7748>')) not in attributes:
+        return 0
+    return len(attributes)
 
 
 def score_language(entity_id: int) -> float:
