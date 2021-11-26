@@ -10,7 +10,10 @@ The following is an overview of the functionality provided by our program and of
 - Named entity recognition (NER)
 - Candidate ranking and linking
 
+
 ## Setup
+
+We assume that the reader will be running this program inside the `karmaresearch/wdps_assignment1` docker container and to also have the `data` and `assets` folder with the wikidata and elasticsearch data available.
 
 Make sure that you are in the `/app/assignment` folder and that the project files are in this same folder (we expect you to have the following folder structure).
 
@@ -29,7 +32,7 @@ Then, run the following command:
 
     ./setup.sh
 
-WARNING: we encountered an error in the Elastic Search startup when the following command was not run in the host environment before running the setup script:
+WARNING: in the setup, we included the command to start the Elastic Search server. However, we encountered an error in the Elastic Search startup when the following command was not run in the host environment before running the setup script:
 
     sudo sysctl -w vm.max_map_count=262144
 
@@ -98,7 +101,7 @@ The f1 score we obtained is 3.6% (0.036) with a recall of 5.3% (0.053) and a pre
 - **user**: 5m20.167s
 - **sys**: 1m13.334s
 
-The computation was performed inside the provided Docker image 'karmaresearch/wdps_assignment1' running inside the WSL 2 engine on a Windows 10 installation.
+The computation was performed inside the provided Docker image `karmaresearch/wdps_assignment1` running inside the WSL 2 engine on a Windows 10 installation.
 
 # References
 
