@@ -12,12 +12,11 @@ to this script.
 
 def parse_cl_args() -> List[str]:
     """
-    Parses the CLI arguments. It returns
-    the list of archive paths if provided.
+    Parses the CLI arguments. It returns the archive path if provided.
 
     Returns
     -------
-    `List[str]` The list of paths provided to the program. 
+    `str` The list of paths provided to the program. 
     """
     parser = argparse.ArgumentParser(
         prog='wdps-assignment1',

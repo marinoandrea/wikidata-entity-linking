@@ -40,7 +40,7 @@ def extract_text_from_html(page: str) -> str:
 def extract_entities(text: str) -> typing.Tuple[typing.Set[NamedEntity], typing.List[EntityMapping]]:
     """
     Returns the named entities found in the text and some entity mappings that were found
-    using cached results.
+    using preloaded knowledge.
 
     Parameters
     ----------
