@@ -94,11 +94,11 @@ It should be stated that we programmed the caching behaviour under the strong as
 
 The results presented were obtained by running the file with input the sample warc file provided (`sample.warc.gz`). The performance was measured by the F1-score, which is the weighted average of the precision and recall.
 
-The f1 score we obtained is 3.6% (0.036) with a recall of 5.3% (0.053) and a precision of 2.7% (0.027) on a Lenovo Thinkpad T14, Ryzen 7 4750 CPU, 32GB DDR4 RAM, 500GB M.1 NVMe SSD. On this platform, the computation took:
+The f1 score we obtained is 4.5% (0.04529) with a recall of 6.7% (0.06770) and a precision of 3.4% (0.03402) on a Lenovo Thinkpad T14, Ryzen 7 4750 CPU, 32GB DDR4 RAM, 500GB M.1 NVMe SSD. On this platform, the computation took:
 
-- **real**: 2m38.067s
-- **user**: 5m20.167s
-- **sys**: 1m13.334s
+- **real**: 2m46.997s
+- **user**: 4m38.971s
+- **sys**: 1m13.028s
 
 The computation was performed inside the provided Docker image `karmaresearch/wdps_assignment1` running inside the WSL 2 engine on a Windows 10 installation.
 
