@@ -21,7 +21,7 @@ def run_flush_daemon():
                 continue
             for mapping in shared_dict[warc]['mappings']:
                 print(
-                    f'{warc.trec_id}\t{mapping.named_entity}\t{mapping.entity_url}')
+                    f'{warc.record_id}\t{mapping.named_entity}\t{mapping.entity_url}')
             # workaround for DictProxy update not working on nested fields
             _temp_job_info = shared_dict[warc]
             _temp_job_info['is_flushed'] = True
