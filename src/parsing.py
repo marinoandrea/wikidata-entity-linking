@@ -8,7 +8,7 @@ from src.interfaces import EntityLabel, EntityMapping, NamedEntity
 
 NON_RELEVANT_HTML_TAGS = ["script", "style", "link", "noscript"]
 
-perform_ner = spacy.load("en_core_web_sm")
+spacy_nlp = spacy.load("en_core_web_sm")
 
 
 def extract_text_from_html(page: str) -> str:
@@ -49,17 +49,17 @@ def extract_entities(text: str) -> typing.Tuple[typing.Set[NamedEntity], typing.
 
     Returns
     -------
-    `Tuple[Set[NamedEntity], List[EntityMapping]]`
+    `Tuple[Set[NamedEntity], List[EntityMapping], List[numpy.ndarray]]`
     A tuple containing the Set of labeled named entities that were found [0] and some entity
     mappings which were produced directly from cached values [1].
     """
 
-    doc = perform_ner(text)
+    doc = spacy_nlp(text)
 
     # we first perform a simple pass on single tokens and proper nouns
-    # and we match them to the entities that we have preloaded from trident
-    # and elasticsearch. This already produces good mappings with very
-    # little computation time.
+    # and we match them to the popular entities that we have preloaded
+    # from trident and elasticsearch. This already produces good mappings
+    # with very little computation time.
 
     cached_mappings: typing.List[EntityMapping] = []
     cached_entities: typing.Set[str] = set()
@@ -88,14 +88,27 @@ def extract_entities(text: str) -> typing.Tuple[typing.Set[NamedEntity], typing.
             add_preloaded_entity(token.text)
             continue
 
+        token_text_low = token.text.lower()
+        if token_text_low in dump_popular_entities:
+            add_preloaded_entity(token_text_low)
+            continue
+
         # end of the proper noun group
         if token.pos_ != 'PROPN' and len(current_propn) > 0:
             current_entity = ' '.join(current_propn)
+            current_entity_low = ' '.join(current_propn)
             # do we have a match in preloaded entities?
-            if current_entity in dump_popular_entities or current_entity[:-1] in dump_popular_entities:
-                # if so let's store the mapping without further analysis
+            # if so let's store the mapping without further analysis
+            if current_entity in dump_popular_entities:
                 add_preloaded_entity(current_entity)
+            elif current_entity[:-1] in dump_popular_entities:
+                add_preloaded_entity(current_entity[:-1])
+            elif current_entity_low in dump_popular_entities:
+                add_preloaded_entity(current_entity_low)
+            elif current_entity_low[:-1] in dump_popular_entities:
+                add_preloaded_entity(current_entity_low[:-1])
             current_propn = []
+
     # entities that were not matched previously are now added
     # to the pipeline and further processed in the next steps
 
@@ -105,8 +118,24 @@ def extract_entities(text: str) -> typing.Tuple[typing.Set[NamedEntity], typing.
         if entity.text in cached_entities:
             continue
 
+        # we perform another round of preloaded mappings
+        # on entities that were only found by SpaCy to
+        # further reduce the amount of entities that will
+        # be processed in the computation-heavy pipeline
+
         if entity.text in dump_popular_entities:
             add_preloaded_entity(entity.text)
+            continue
+        elif entity.text[:-1] in dump_popular_entities:
+            add_preloaded_entity(entity.text[:-1])
+            continue
+
+        entity_text_low = entity.text.lower()
+        if entity_text_low in dump_popular_entities:
+            add_preloaded_entity(entity_text_low)
+            continue
+        elif entity_text_low[:-1] in dump_popular_entities:
+            add_preloaded_entity(entity_text_low[:-1])
             continue
 
         if not (len(entity.text) > 0 and entity.text[0].isupper()) or (len(entity.text) > 1 and entity.text[1].isupper()):
