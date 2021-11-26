@@ -29,6 +29,10 @@ Then, run the following command:
 
     ./setup.sh
 
+WARNING: we encountered an error in the Elastic Search startup when the following command was not run in the host environment before running the setup script:
+
+    sudo sysctl -w vm.max_map_count=262144
+
 WARNING: this may raise some errors during the installation of additional python dependencies. We noticed that additional system-level peer dependencies may have to be installed (although we were able to run the program without). If necessary, you should be able to install them using the following command:
 
     sudo apt install libcairo2-dev
