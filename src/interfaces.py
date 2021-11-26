@@ -1,8 +1,7 @@
-import dataclasses
 import datetime
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import List, Optional
 
 from typing_extensions import TypedDict
 
@@ -35,12 +34,10 @@ class NamedEntity:
 @dataclass(eq=True, frozen=True, unsafe_hash=False)
 class CandidateNamedEntity:
     id: str
-    score: float
+    es_score: float
     label: str
     description: str
-    # TODO(andrea): actually extract ranges from text
-    range_start: int = 0
-    range_end: int = 0
+    similarity_score: Optional[float] = None
 
 
 @dataclass(eq=True, frozen=True, unsafe_hash=False)
@@ -67,18 +64,13 @@ class WARCRecordMetadata:
     WARC-Record-ID: <urn:uuid:f638c914-658d-418a-93f8-6e89a4858359>
     ```
     """
-    # FIXME(andrea): we are still using trec_id instaed of record_id
-    # because that's how the sample that we use for testing is formatted
-    # However, it was mentioned on canvas that we should use record_id for
-    # the submission. It is crucial that we swap these in the warc metadata
-    # parsing and subsequent output to console.
-    trec_id: str
+    record_id: str
+    trec_id: Optional[str] = None
     w_type: Optional[str] = None
     date: Optional[datetime.datetime] = None
     ip_addr: Optional[str] = None
     digest: Optional[str] = None
     uri: Optional[str] = None
-    record_id: Optional[str] = None
 
 
 class WARCJobInformation(TypedDict):
@@ -88,18 +80,3 @@ class WARCJobInformation(TypedDict):
     mappings: List[EntityMapping]
     is_done: bool
     is_flushed: bool
-
-
-@dataclass(eq=True, frozen=True, unsafe_hash=False)
-class TridentQueryTask:
-    warc_record: WARCRecordMetadata
-    candidate: CandidateNamedEntity
-
-
-@dataclass(eq=True, frozen=True, unsafe_hash=False)
-class TridentQueryResult:
-    _label: EntityLabel
-    _candidate_id: str
-    outdegree: int
-    indegree: int
-    is_label: bool

@@ -49,7 +49,7 @@ def generate_entity_candidates(es_client: es.Elasticsearch, entity: NamedEntity)
 
             candidates.append(CandidateNamedEntity(
                 id=hit["_id"],
-                score=hit["_score"],
+                es_score=hit["_score"],
                 label=label,
                 description=description))
 
@@ -96,3 +96,15 @@ def choose_entity_candidate(
 
     candidate_cache[entity] = candidates[0]
     return candidate_cache[entity]
+
+
+# def compute_similarity(data:  Tuple[np.ndarray, CandidateNamedEntity]):
+#    """
+#    Computes cosine similarity for the provided entity vector and the
+#    candidate vector that this generates.
+#    """
+#    entity_vector, candidate = data
+#    candidate_vector = spacy_nlp(
+#        candidate.label + " " + candidate.description).vector
+#    candidate.similarity_score = calculate_similarity(
+#        entity_vector, candidate_vector)

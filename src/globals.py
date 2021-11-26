@@ -11,4 +11,4 @@ shared_dict: Dict[WARCRecordMetadata, WARCJobInformation] = manager.dict()
 
 # dump dictionaries
 dump_popular_entities = load_dumps(
-    'person',  'city', 'country', 'org', 'software')
+    'person',  'city', 'country', 'org', 'software', 'website')

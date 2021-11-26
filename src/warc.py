@@ -99,7 +99,7 @@ def extract_metadata_from_warc(warc_record: str) -> WARCRecordMetadata:
             # with WARC metadata parsing without scanning the whole file everytime.
             break
 
-    if trec_id is None:
+    if record_id is None:
         raise ValueError()
 
     return WARCRecordMetadata(

@@ -31,7 +31,7 @@ def process_record(record: str):
         warc_metadata = extract_metadata_from_warc(record)
     # we are handling the case where the record is an empty string
     except ValueError:
-        logging.error("warc record does not have a trec ID")
+        logging.error("The provided WARC record does not have a record ID. We are explicitly not using Trec ID but Record ID as mentioned on the Canvas announcement (see https://canvas.vu.nl/courses/55617/discussion_topics/452242)")
         return
 
     # init job information in the shared dict
@@ -59,6 +59,19 @@ def process_record(record: str):
 
     entity_candidates_list = t_pool.map(
         partial(generate_entity_candidates, es_client), named_entities)
+
+    ############
+    # NOTE: we leave the cosine similarity strategy here as a possible
+    # alternative but it still needs further research as it is not producing
+    # satisfying results.
+    #
+    # let's compute cosine similarity
+    # imilarity_tasks: List[Tuple[np.ndarray, CandidateNamedEntity]] = []
+    # for entity_vector, candidate_list in zip(vectors, entity_candidates_list):
+    #    for candidate in candidate_list:
+    #        similarity_tasks.append((entity_vector, candidate))
+    # t_pool.map(compute_similarity, similarity_tasks)
+    ##############
 
     candidate_cache: Dict[NamedEntity, CandidateNamedEntity] = {}
 

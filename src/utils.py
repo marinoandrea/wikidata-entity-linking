@@ -1,6 +1,9 @@
+import typing
 from typing import Dict, Optional
 
+import numpy as np
 from decorator import decorate
+from scipy.spatial import distance
 
 
 def _cache(f, *args, **kwargs):
@@ -36,3 +39,9 @@ def load_dumps(*labels) -> Dict[str, str]:
                 except ValueError:
                     continue
     return out
+
+
+def calculate_similarity(vector_a: np.ndarray, vector_b: np.ndarray) -> float:
+    if vector_a.shape[0] == 0 or vector_b.shape[0] == 0:
+        return 0
+    return typing.cast(float, 1 - distance.cosine(vector_a, vector_b))
