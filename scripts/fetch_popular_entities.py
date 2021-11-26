@@ -11,6 +11,7 @@ sys.argv[1] - category/label
 sys.argv[2] - min. number of attributes to be consider popular (optional, default = 25)
 """
 
+import json
 import os
 import sys
 
@@ -24,7 +25,8 @@ def get_super_entity(label: str) -> str:
         'org': 'Q4830453',
         'software': 'Q218616',
         'city': 'Q515',
-        'country': 'Q6256'
+        'country': 'Q6256',
+        'website': 'Q35127'
     }[label]
 
 
@@ -34,6 +36,10 @@ def main():
     min_attributes = 25
     if len(sys.argv) > 2:
         min_attributes = int(sys.argv[2])
+
+    if category == 'country':
+        with open('scripts/data/countries.json', 'r') as f:
+            countries = json.load(f)
 
     trident_db = trident.Db(os.getenv(
         'KB_PATH', "assets/wikidata-20200203-truthy-uri-tridentdb"))
@@ -72,7 +78,18 @@ def main():
                             .encode()\
                             .decode('unicode_escape')\
                             .encode()\
-                            .decode('utf-8')
+                            .decode('utf-8')\
+                            .strip()
+
+                        if category == 'country':
+                            try:
+                                country = next(
+                                    c for c in countries if c['name'] == label)
+                                dump_str += (
+                                    f"{entity}\t{country['code']}\t{wd_uri}\n")
+                            except StopIteration:
+                                pass
+
                         dump_str += (f"{entity}\t{label}\t{wd_uri}\n")
 
                 except es.NotFoundError:
