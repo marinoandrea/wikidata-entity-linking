@@ -30,6 +30,7 @@ def generate_entity_candidates(es_client: es.Elasticsearch, entity: NamedEntity)
         response = es_client.search(
             size=15,
             index="wikidata_en",
+            request_cache=True,
             body={"query": {"query_string": {"query": entity.name, }}})
 
         candidates: List[CandidateNamedEntity] = []

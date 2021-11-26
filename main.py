@@ -44,7 +44,8 @@ def process_record(record: str):
     }
 
     text = extract_text_from_html(record)
-    named_entities = extract_entities(text)
+
+    named_entities, cached_mappings = extract_entities(text)
 
     # free some memory
     del text
@@ -70,9 +71,9 @@ def process_record(record: str):
 
     shared_dict[warc_metadata] = {
         "mappings": [
-            EntityMapping(named_entity=ent, entity_url=cand.id)
-            for (ent, cand) in zip(named_entities, entity_candidates)
-            if cand is not None],
+            *(EntityMapping(named_entity=ent.name, entity_url=cand.id)
+              for (ent, cand) in zip(named_entities, entity_candidates)
+              if cand is not None), *cached_mappings],
         "is_done": True,
         "is_flushed": False
     }

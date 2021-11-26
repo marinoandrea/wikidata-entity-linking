@@ -2,7 +2,7 @@ data
 assets
 *.warc.gz
 .env
-*.tsv
+/*.tsv
 
 # Editors
 .vscode/

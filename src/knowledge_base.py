@@ -1,6 +1,6 @@
 import multiprocessing as mp
 import os
-from typing import Set, Tuple
+from typing import Optional, Set, Tuple
 
 import trident
 
@@ -15,10 +15,9 @@ trident_lock = mp.Lock()
 
 
 @cached
-def fetch_id(term: str) -> int:
+def fetch_id(term: str) -> Optional[int]:
     """
-    Cached version of `trident.Db.lookup_id`. It expects 
-    given terms to be valid URIs.
+    Cached version of `trident.Db.lookup_id`.
 
     Parameters
     ----------
@@ -27,16 +26,9 @@ def fetch_id(term: str) -> int:
 
     Returns
     -------
-    'int' The trident internal ID.
-
-    Throws
-    ------
-    `ValueError` If the given `term` is not a valid wikidata URI in the graph.
+    `Optional[int]` The trident internal ID or None.
     """
-    out = trident_db.lookup_id(term)
-    if out is None:
-        raise ValueError(f"'{term}' is not a valid wikidata URI.")
-    return out
+    return trident_db.lookup_id(term)
 
 
 @cached
@@ -124,6 +116,54 @@ PREDICATE_ID_P2532 = fetch_id('<http://www.wikidata.org/prop/direct/P2532>')
 # part of the series
 PREDICATE_ID_P179 = fetch_id('<http://www.wikidata.org/prop/direct/P179>')
 
+# predicates for FAC
+# Location
+PREDICATE_ID_P276 = fetch_id('<http://www.wikidata.org/prop/direct/P276>')
+# Coordinate location
+PREDICATE_ID_P625 = fetch_id('<http://www.wikidata.org/prop/direct/P625>')
+# Architectural style
+PREDICATE_ID_P149 = fetch_id('<http://www.wikidata.org/prop/direct/P149>')
+# Maximum capacity
+PREDICATE_ID_P1083 = fetch_id('<http://www.wikidata.org/prop/direct/P1083>')
+# Located in the administrative territorial entity
+PREDICATE_ID_P131 = fetch_id('<http://www.wikidata.org/prop/direct/P131>')
+# Street address
+PREDICATE_ID_P6375 = fetch_id('<http://www.wikidata.org/prop/direct/P6375>')
+
+# predicates for organization
+# Founded by
+PREDICATE_ID_P112 = fetch_id('<http://www.wikidata.org/prop/direct/P112>')
+# Chief executive officer
+PREDICATE_ID_P169 = fetch_id('<http://www.wikidata.org/prop/direct/P169>')
+# Board member
+PREDICATE_ID_P3320 = fetch_id('<http://www.wikidata.org/prop/direct/P3320>')
+# Motto
+PREDICATE_ID_P1546 = fetch_id('<http://www.wikidata.org/prop/direct/P1546>')
+# Motto text
+PREDICATE_ID_P1451 = fetch_id('<http://www.wikidata.org/prop/direct/P1451>')
+# Owned by
+PREDICATE_ID_P127 = fetch_id('<http://www.wikidata.org/prop/direct/P127>')
+# Employees
+PREDICATE_ID_P1128 = fetch_id('<http://www.wikidata.org/prop/direct/P1128>')
+# Product or material produced
+PREDICATE_ID_P1056 = fetch_id('<http://www.wikidata.org/prop/direct/P1056>')
+# Legal form
+PREDICATE_ID_P1454 = fetch_id('<http://www.wikidata.org/prop/direct/P1454>')
+# Inception
+PREDICATE_ID_P571 = fetch_id('<http://www.wikidata.org/prop/direct/P571>')
+# Total revenue
+PREDICATE_ID_P2139 = fetch_id('<http://www.wikidata.org/prop/direct/P2139>')
+# Director/manager
+PREDICATE_ID_P1037 = fetch_id('<http://www.wikidata.org/prop/direct/P1037>')
+
+# predicates for language
+# native label
+PREDICATE_ID_P1705 = fetch_id('<http://www.wikidata.org/prop/direct/P1705>')
+# country
+PREDICATE_ID_P17 = fetch_id('<http://www.wikidata.org/prop/direct/P17>')
+# has part
+PREDICATE_ID_P527 = fetch_id('<http://www.wikidata.org/prop/direct/P527>')
+
 
 def score_person(entity_id: int) -> float:
     if not trident_db.exists(entity_id, PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q5>')):
@@ -152,11 +192,14 @@ def score_norp(entity_id: int) -> float:
 
 
 def score_fac(entity_id: int) -> float:
-    raise NotImplementedError()
+    return 0
 
 
 def score_org(entity_id: int) -> float:
-    raise NotImplementedError()
+    attributes = fetch_attributes(entity_id)
+    if (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q4830453>')) not in attributes:
+        return 0
+    return len(attributes)
 
 
 def score_gpe(entity_id: int) -> float:
@@ -179,7 +222,7 @@ def score_gpe(entity_id: int) -> float:
 
 
 def score_loc(entity_id: int) -> float:
-    raise NotImplementedError()
+    return 0
 
 
 def score_product(entity_id: int) -> float:
@@ -190,7 +233,7 @@ def score_product(entity_id: int) -> float:
         (PREDICATE_ID_P279, fetch_id('<http://www.wikidata.org/entity/Q2095>')),
         (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q746549>')),
         (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q17062980>')),
-        (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q84431525>')),
+        # (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q84431525>')),
         # cars
         (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q10429667>')),
         (PREDICATE_ID_P31, fetch_id('<http://www.wikidata.org/entity/Q786820>')),
@@ -261,7 +304,7 @@ def score_work_of_art(entity_id: int) -> float:
 
 
 def score_law(entity_id: int) -> float:
-    raise NotImplementedError()
+    return 0
 
 
 def score_language(entity_id: int) -> float:

@@ -45,7 +45,7 @@ class CandidateNamedEntity:
 
 @dataclass(eq=True, frozen=True, unsafe_hash=False)
 class EntityMapping:
-    named_entity: NamedEntity
+    named_entity: str
     entity_url: Optional[str]
 
 
